@@ -1,14 +1,14 @@
 {
   "name": "aws-multiple-accounts-extension",
   "version": "1.0.0",
-  "description": "Handling multiple AWS Accounts is now easier",
+  "description": "It allows you to know in which AWS account you are logged in.",
   "main": "index.js",
   "scripts": {
-    "watch": "webpack --config webpack/webpack.dev.js --watch",
+    "dev": "webpack --config webpack/webpack.dev.js --watch",
     "build": "webpack --config webpack/webpack.prod.js",
     "clean": "rimraf dist",
-    "test": "npx jest",
-    "style": "prettier --write \"src/**/*.{ts,tsx}\""
+    "test": "jest",
+    "prettier": "prettier --write ."
   },
   "author": "",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
-    "@types/chrome": "0.0.158",
+    "@types/chrome": "^0.0.158",
     "@types/jest": "^27.0.2",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
