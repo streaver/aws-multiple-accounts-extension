@@ -7,7 +7,7 @@
   "content_scripts": [
     {
       "matches": ["https://*.awsapps.com/*", "https://*.console.aws.amazon.com/*"],
-      "js": ["js/vendor.js", "js/content_script.js"]
+      "js": ["js/content_script.js"]
     }
   ],
   "background": {

@@ -12,14 +12,6 @@ module.exports = {
     path: path.join(__dirname, "../dist/js"),
     filename: "[name].js",
   },
-  optimization: {
-    splitChunks: {
-      name: "vendor",
-      chunks(chunk) {
-        return chunk.name !== "background";
-      },
-    },
-  },
   module: {
     rules: [
       {
