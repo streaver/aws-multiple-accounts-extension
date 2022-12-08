@@ -7,7 +7,6 @@ This extension solves this. It will automatically get all the accounts available
 ![Step 1](https://github.com/streaver/aws-multiple-accounts-extension/blob/main/images/step1.png?raw=true)
 ![Step 2](https://github.com/streaver/aws-multiple-accounts-extension/blob/main/images/step2.png?raw=true)
 ![Step 3](https://github.com/streaver/aws-multiple-accounts-extension/blob/main/images/step3.png?raw=true)
-![Step 4](https://github.com/streaver/aws-multiple-accounts-extension/blob/main/images/step4.png?raw=true)
 # Installing
 
 We are not publishing this to the extension store un purpose. We want to make sure whoever uses this extension knows what they are doing. You can download the zip file with the extension code or you can build it yourself if you don't trust the maintainers, we won't be offended.
