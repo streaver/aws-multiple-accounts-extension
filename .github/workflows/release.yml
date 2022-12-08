@@ -1,0 +1,27 @@
+name: "release"
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  release:
+    name: "Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.x
+      - run: npm ci
+      - run: npm run build
+      - run: mv dist aws-multiple-accounts-extension
+      - run: zip -r aws-multiple-accounts-extension.zip aws-multiple-accounts-extension
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: aws-multiple-accounts-extension.zip
