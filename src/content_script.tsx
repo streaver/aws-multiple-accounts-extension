@@ -10,7 +10,10 @@ import waitForElement from "./utils/waitForElement";
 
       await Promise.allSettled(
         accounts.map((account) => {
-          return setAccount(chrome.runtime, account);
+          return setAccount(chrome.runtime, {
+            ...account,
+            color: account.name.toLowerCase().includes("prod") ? "red" : "blue",
+          });
         }),
       );
     });
@@ -25,6 +28,10 @@ import waitForElement from "./utils/waitForElement";
       const account = await getAccount(chrome.runtime, parseInt(accountIdFromDom));
 
       const newAccountName = `${account.name}/${accountNameFromDom}`;
+
+      accountTextElement.style.backgroundColor = account.color ?? "";
+      accountTextElement.style.borderRadius = "5px";
+      accountTextElement.style.padding = "0 5px";
 
       accountTextElement.innerHTML = newAccountName;
     }
