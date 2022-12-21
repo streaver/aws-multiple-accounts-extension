@@ -1,31 +1,65 @@
-import { AccountsCache } from "./utils/accounts";
+import { Account } from "./utils/accounts";
+
+export type BackgroundRequestType = "GET_ACCOUNT" | "SET_ACCOUNT";
 
 export type BackgroundRequest =
   | {
-      type: "SET_ACCOUNTS";
-      payload: AccountsCache;
+      type: "GET_ACCOUNT";
+      payload: number;
     }
-  | { type: "GET_ACCOUNTS" };
+  | {
+      type: "SET_ACCOUNT";
+      payload: Account;
+    };
 
 export type BackgroundResponse =
   | {
-      type: "GET_ACCOUNTS";
-      payload: AccountsCache;
+      type: "GET_ACCOUNT";
+      payload: Account;
     }
   | {
-      type: "SET_ACCOUNTS";
+      type: "SET_ACCOUNT";
+      payload: Account;
     };
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.type === "GET_ACCOUNTS") {
-    chrome.storage.sync.get("aws-accounts", (result) => {
-      const accounts = JSON.parse(result["aws-accounts"]);
+function buildAccountKey(id: number): string {
+  return `aws-accounts:${id}`;
+}
 
-      sendResponse({ type: "GET_ACCOUNTS", payload: accounts });
+function getAccount(id: number): Promise<Account> {
+  return new Promise((resolve) => {
+    const accountKey = buildAccountKey(id);
+
+    chrome.storage.sync.get(accountKey, (result) => {
+      const account = JSON.parse(result[accountKey]) as Account;
+
+      resolve(account);
     });
-  } else if (request.type === "SET_ACCOUNTS") {
-    chrome.storage.sync.set({ "aws-accounts": JSON.stringify(request.payload) }, () => {
-      sendResponse({ type: "SET_ACCOUNTS" });
+  });
+}
+
+function setAccount(account: Account): Promise<Account> {
+  return new Promise((resolve) => {
+    const accountKey = buildAccountKey(account.id);
+
+    chrome.storage.sync.set({ [accountKey]: JSON.stringify(account) }, () => {
+      resolve(account);
+    });
+  });
+}
+
+chrome.runtime.onMessage.addListener(function (
+  request: BackgroundRequest,
+  _sender: chrome.runtime.MessageSender,
+  sendResponse: (response: BackgroundResponse) => void,
+) {
+  if (request.type === "GET_ACCOUNT") {
+    getAccount(request.payload).then((account) => {
+      sendResponse({ type: "GET_ACCOUNT", payload: account });
+    });
+  } else if (request.type === "SET_ACCOUNT") {
+    setAccount(request.payload).then((account) => {
+      sendResponse({ type: "SET_ACCOUNT", payload: account });
     });
   }
 

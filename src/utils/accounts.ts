@@ -1,39 +1,40 @@
+export type Account = {
+  id: number;
+  name: string;
+  color?: string;
+};
+
 export type AccountsCache = Record<string, string>;
 
-export async function getAccounts(runtime: typeof chrome.runtime): Promise<AccountsCache> {
+export async function getAccount(runtime: typeof chrome.runtime, id: number): Promise<Account> {
   return new Promise((resolve) => {
-    runtime.sendMessage({ type: "GET_ACCOUNTS" }, (response) => {
+    runtime.sendMessage({ type: "GET_ACCOUNT", payload: id }, (response) => {
       resolve(response.payload);
     });
   });
 }
 
-export async function setAccounts(runtime: typeof chrome.runtime, accounts: AccountsCache): Promise<void> {
+export async function setAccount(runtime: typeof chrome.runtime, account: Account): Promise<void> {
   return new Promise((resolve) => {
-    runtime.sendMessage({ type: "SET_ACCOUNTS", payload: accounts }, () => {
+    runtime.sendMessage({ type: "SET_ACCOUNT", payload: account }, () => {
       resolve();
     });
   });
 }
 
-export function parseAccountsFromDom() {
+export function parseAccountsFromDom(): Account[] {
   const accounts = Array.from(document.querySelectorAll(".instance-block"))
     .map((account) => {
       const accountName = account.querySelector(".name")?.innerHTML;
       const accountId = account.querySelector(".accountId")?.innerHTML.replace(/\#/g, "");
 
       if (accountName && accountId) {
-        return { name: accountName, id: accountId };
+        return { name: accountName, id: parseInt(accountId) };
       }
 
       return null;
     })
-    .filter(Boolean)
-    .reduce((acc, account) => {
-      acc[account!.id] = account!.name;
+    .filter(Boolean);
 
-      return acc;
-    }, {} as AccountsCache);
-
-  return accounts;
+  return accounts as Account[];
 }
