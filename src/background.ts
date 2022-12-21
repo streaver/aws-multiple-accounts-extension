@@ -1,13 +1,13 @@
 import { AccountsCache } from "./utils/accounts";
 
-export type Message =
+export type BackgroundRequest =
   | {
       type: "SET_ACCOUNTS";
       payload: AccountsCache;
     }
   | { type: "GET_ACCOUNTS" };
 
-export type MessageResponse =
+export type BackgroundResponse =
   | {
       type: "GET_ACCOUNTS";
       payload: AccountsCache;
