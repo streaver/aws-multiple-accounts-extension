@@ -1,4 +1,4 @@
-import { getAccount, parseAccountsFromDom, setAccount } from "./utils/accounts";
+import { getAccount, injectInputToAccounts, parseAccountsFromDom, setAccount } from "./utils/accounts";
 import waitForElement from "./utils/waitForElement";
 
 (async function main() {
@@ -9,13 +9,18 @@ import waitForElement from "./utils/waitForElement";
       const accounts = parseAccountsFromDom();
 
       await Promise.allSettled(
-        accounts.map((account) => {
-          return setAccount(chrome.runtime, {
-            ...account,
-            color: account.name.toLowerCase().includes("prod") ? "red" : "blue",
-          });
+        accounts.map(async (account) => {
+          const maybeAccount = await getAccount(chrome.runtime, account.id);
+
+          if (maybeAccount) {
+            return;
+          }
+
+          return setAccount(chrome.runtime, account);
         }),
       );
+
+      injectInputToAccounts();
     });
   } else if (window.location.host.endsWith("aws.amazon.com")) {
     const accountIdElement = await waitForElement('div[data-testid="account-detail-menu"] span:nth-child(2)');

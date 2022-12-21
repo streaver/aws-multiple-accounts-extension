@@ -10,6 +10,10 @@ export type BackgroundRequest =
   | {
       type: "SET_ACCOUNT";
       payload: Account;
+    }
+  | {
+      type: "UPDATE_PROPERTIES";
+      payload: Pick<Account, "id"> & Partial<Account>;
     };
 
 export type BackgroundResponse =
@@ -19,6 +23,10 @@ export type BackgroundResponse =
     }
   | {
       type: "SET_ACCOUNT";
+      payload: Account;
+    }
+  | {
+      type: "UPDATE_PROPERTIES";
       payload: Account;
     };
 
@@ -60,6 +68,17 @@ chrome.runtime.onMessage.addListener(function (
   } else if (request.type === "SET_ACCOUNT") {
     setAccount(request.payload).then((account) => {
       sendResponse({ type: "SET_ACCOUNT", payload: account });
+    });
+  } else if (request.type === "UPDATE_PROPERTIES") {
+    getAccount(request.payload.id).then((account) => {
+      const updatedAccount = {
+        ...account,
+        ...request.payload,
+      };
+
+      setAccount(updatedAccount).then((account) => {
+        sendResponse({ type: "UPDATE_PROPERTIES", payload: account });
+      });
     });
   }
 
