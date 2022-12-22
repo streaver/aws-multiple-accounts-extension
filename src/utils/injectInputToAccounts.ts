@@ -9,6 +9,10 @@ export default function injectInputToAccounts(): void {
 
     const account = await getAccount(chrome.runtime, parseInt(accountId));
 
+    if (!account) {
+      return;
+    }
+
     const accountColorInput = document.createElement("input");
     accountColorInput.type = "color";
     accountColorInput.value = account.color || "#000000";
@@ -22,10 +26,6 @@ export default function injectInputToAccounts(): void {
     accountColorInput.addEventListener(
       "input",
       (event) => {
-        if (!accountId) {
-          return;
-        }
-
         updatedAccountProperties(chrome.runtime, {
           id: parseInt(accountId),
           //@ts-ignore

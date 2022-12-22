@@ -34,6 +34,10 @@ import waitForElement from "./utils/waitForElement";
 
       const account = await getAccount(chrome.runtime, parseInt(accountIdFromDom));
 
+      if (!account) {
+        return;
+      }
+
       const newAccountName = `${account.name}/${accountNameFromDom}`;
 
       accountTextElement.style.backgroundColor = account.color ?? "";

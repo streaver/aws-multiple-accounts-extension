@@ -1,3 +1,5 @@
+import { GetAccountBackgroundResponse, UpdateAccountPropertiesBackgroundResponse } from "../background";
+
 export type Account = {
   id: number;
   name: string;
@@ -6,9 +8,9 @@ export type Account = {
 
 export type AccountsCache = Record<string, string>;
 
-export async function getAccount(runtime: typeof chrome.runtime, id: number): Promise<Account> {
+export async function getAccount(runtime: typeof chrome.runtime, id: number): Promise<Account | null> {
   return new Promise((resolve) => {
-    runtime.sendMessage({ type: "GET_ACCOUNT", payload: id }, (response) => {
+    runtime.sendMessage({ type: "GET_ACCOUNT", payload: id }, (response: GetAccountBackgroundResponse) => {
       resolve(response.payload);
     });
   });
@@ -16,8 +18,8 @@ export async function getAccount(runtime: typeof chrome.runtime, id: number): Pr
 
 export async function setAccount(runtime: typeof chrome.runtime, account: Account): Promise<void> {
   return new Promise((resolve) => {
-    runtime.sendMessage({ type: "SET_ACCOUNT", payload: account }, (response) => {
-      resolve(response.payload);
+    runtime.sendMessage({ type: "SET_ACCOUNT", payload: account }, () => {
+      resolve();
     });
   });
 }
@@ -25,10 +27,13 @@ export async function setAccount(runtime: typeof chrome.runtime, account: Accoun
 export default function updatedAccountProperties(
   runtime: typeof chrome.runtime,
   account: Pick<Account, "id"> & Partial<Account>,
-): Promise<void> {
+): Promise<Account | null> {
   return new Promise((resolve) => {
-    runtime.sendMessage({ type: "UPDATE_PROPERTIES", payload: account }, (response) => {
-      resolve(response.payload);
-    });
+    runtime.sendMessage(
+      { type: "UPDATE_PROPERTIES", payload: account },
+      (response: UpdateAccountPropertiesBackgroundResponse) => {
+        resolve(response.payload);
+      },
+    );
   });
 }

@@ -1,45 +1,54 @@
 import { Account } from "./utils/accountsStorage";
 
-export type BackgroundRequestType = "GET_ACCOUNT" | "SET_ACCOUNT";
+export type GetAccountBackgroundRequest = {
+  type: "GET_ACCOUNT";
+  payload: number;
+};
+
+export type SetAccountBackgroundRequest = {
+  type: "SET_ACCOUNT";
+  payload: Account;
+};
+
+export type UpdateAccountPropertiesBackgroundRequest = {
+  type: "UPDATE_ACCOUNT_PROPERTIES";
+  payload: Pick<Account, "id"> & Partial<Account>;
+};
 
 export type BackgroundRequest =
-  | {
-      type: "GET_ACCOUNT";
-      payload: number;
-    }
-  | {
-      type: "SET_ACCOUNT";
-      payload: Account;
-    }
-  | {
-      type: "UPDATE_PROPERTIES";
-      payload: Pick<Account, "id"> & Partial<Account>;
-    };
+  | GetAccountBackgroundRequest
+  | SetAccountBackgroundRequest
+  | UpdateAccountPropertiesBackgroundRequest;
+
+export type GetAccountBackgroundResponse = {
+  type: "GET_ACCOUNT";
+  payload: Account | null;
+};
+
+export type SetAccountBackgroundResponse = {
+  type: "SET_ACCOUNT";
+};
+
+export type UpdateAccountPropertiesBackgroundResponse = {
+  type: "UPDATE_ACCOUNT_PROPERTIES";
+  payload: Account | null;
+};
 
 export type BackgroundResponse =
-  | {
-      type: "GET_ACCOUNT";
-      payload: Account;
-    }
-  | {
-      type: "SET_ACCOUNT";
-      payload: Account;
-    }
-  | {
-      type: "UPDATE_PROPERTIES";
-      payload: Account;
-    };
+  | GetAccountBackgroundResponse
+  | SetAccountBackgroundResponse
+  | UpdateAccountPropertiesBackgroundResponse;
 
 function buildAccountKey(id: number): string {
   return `aws-accounts:${id}`;
 }
 
-function getAccount(id: number): Promise<Account> {
+function getAccount(id: number): Promise<Account | null> {
   return new Promise((resolve) => {
     const accountKey = buildAccountKey(id);
 
     chrome.storage.sync.get(accountKey, (result) => {
-      const account = JSON.parse(result[accountKey]) as Account;
+      const account = JSON.parse(result[accountKey]);
 
       resolve(account);
     });
@@ -67,17 +76,21 @@ chrome.runtime.onMessage.addListener(function (
     });
   } else if (request.type === "SET_ACCOUNT") {
     setAccount(request.payload).then((account) => {
-      sendResponse({ type: "SET_ACCOUNT", payload: account });
+      sendResponse({ type: "SET_ACCOUNT" });
     });
-  } else if (request.type === "UPDATE_PROPERTIES") {
+  } else if (request.type === "UPDATE_ACCOUNT_PROPERTIES") {
     getAccount(request.payload.id).then((account) => {
+      if (!account) {
+        return;
+      }
+
       const updatedAccount = {
         ...account,
         ...request.payload,
       };
 
       setAccount(updatedAccount).then((account) => {
-        sendResponse({ type: "UPDATE_PROPERTIES", payload: account });
+        sendResponse({ type: "UPDATE_ACCOUNT_PROPERTIES", payload: account });
       });
     });
   }
