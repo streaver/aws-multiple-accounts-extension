@@ -64,17 +64,26 @@ export function injectInputToAccounts(): void {
     accountColorInput.value = account.color || "#000000";
     accountColorInput.style.marginLeft = "10px";
 
-    accountColorInput.addEventListener("input", (event) => {
-      if (!accountId) {
-        return;
-      }
-
-      updatedAccountProperties(chrome.runtime, {
-        id: parseInt(accountId),
-        //@ts-ignore
-        color: event.target?.value,
-      });
+    // In order to avoid the parent menu from opening when clicking on the color input
+    accountColorInput.addEventListener("click", (event) => {
+      event.stopPropagation();
     });
+
+    accountColorInput.addEventListener(
+      "input",
+      (event) => {
+        if (!accountId) {
+          return;
+        }
+
+        updatedAccountProperties(chrome.runtime, {
+          id: parseInt(accountId),
+          //@ts-ignore
+          color: event.target?.value,
+        });
+      },
+      true,
+    );
 
     accountBlock?.append(accountColorInput);
   });
