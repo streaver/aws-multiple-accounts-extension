@@ -1,6 +1,6 @@
-export default async function waitForElement(selector: string): Promise<HTMLElement> {
-  return new Promise((resolve) => {
-    const observer = new MutationObserver((mutations) => {
+export default async function waitForElement(selector: string, timeout: number = 1000): Promise<HTMLElement> {
+  return new Promise((resolve, reject) => {
+    const observer = new MutationObserver(() => {
       const element = document.querySelector(selector);
 
       if (element) {
@@ -13,5 +13,11 @@ export default async function waitForElement(selector: string): Promise<HTMLElem
       childList: true,
       subtree: true,
     });
+
+    setTimeout(() => {
+      observer.disconnect();
+
+      reject(new Error(`Element ${selector} not found`));
+    }, timeout);
   });
 }
