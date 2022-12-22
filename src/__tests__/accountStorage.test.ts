@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import { chrome } from "jest-chrome";
 import { getAccount, setAccount, updateAccountProperties } from "../utils/accountsStorage";
 

@@ -5,7 +5,7 @@ module.exports = {
     "^.+\\.ts$": "ts-jest",
   },
   preset: "ts-jest",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   coverageThreshold: {
     global: {
       branches: 80,

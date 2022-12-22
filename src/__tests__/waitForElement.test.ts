@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import waitForElement from "../utils/waitForElement";
 
 describe("waitForElement", () => {

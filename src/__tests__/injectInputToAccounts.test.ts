@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import { updateAccountProperties } from "../utils/accountsStorage";
 import injectInputToAccounts from "../utils/injectInputToAccounts";
 

@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import parseAccountsFromDom from "../utils/parseAccountsFromDom";
 
 describe("parseAccountsFromDom", () => {
