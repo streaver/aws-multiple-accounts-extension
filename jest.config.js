@@ -1,4 +1,5 @@
 module.exports = {
+  setupFilesAfterEnv: ["./jest.setup.js"],
   roots: ["src"],
   transform: {
     "^.+\\.ts$": "ts-jest",
