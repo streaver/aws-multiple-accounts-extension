@@ -1,4 +1,4 @@
-import { Account } from "./utils/accounts";
+import { Account } from "./utils/accountsStorage";
 
 export type BackgroundRequestType = "GET_ACCOUNT" | "SET_ACCOUNT";
 

@@ -1,4 +1,6 @@
-import { getAccount, injectInputToAccounts, parseAccountsFromDom, setAccount } from "./utils/accounts";
+import { getAccount, setAccount } from "./utils/accountsStorage";
+import injectInputToAccounts from "./utils/injectInputToAccounts";
+import parseAccountsFromDom from "./utils/parseAccountsFromDom";
 import waitForElement from "./utils/waitForElement";
 
 (async function main() {
