@@ -24,7 +24,7 @@ export async function setAccount(runtime: typeof chrome.runtime, account: Accoun
   });
 }
 
-export default function updatedAccountProperties(
+export function updateAccountProperties(
   runtime: typeof chrome.runtime,
   account: Pick<Account, "id"> & Partial<Account>,
 ): Promise<Account | null> {

@@ -22,7 +22,7 @@ import waitForElement from "./utils/waitForElement";
         }),
       );
 
-      injectInputToAccounts();
+      await injectInputToAccounts();
     });
   } else if (window.location.host.endsWith("aws.amazon.com")) {
     const accountIdElement = await waitForElement('div[data-testid="account-detail-menu"] span:nth-child(2)');

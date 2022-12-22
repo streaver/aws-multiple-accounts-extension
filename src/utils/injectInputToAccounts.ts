@@ -1,8 +1,9 @@
-import updatedAccountProperties, { getAccount } from "./accountsStorage";
+import { getAccount, updateAccountProperties } from "./accountsStorage";
 
-export default function injectInputToAccounts(): void {
-  Array.from(document.querySelectorAll(".instance-section")).forEach(async (accountBlock) => {
+export default async function injectInputToAccounts(): Promise<HTMLInputElement[]> {
+  const promises = Array.from(document.querySelectorAll(".instance-section")).map(async (accountBlock) => {
     const accountId = accountBlock.querySelector(".accountId")?.innerHTML.replace(/\#/g, "");
+
     if (!accountId) {
       return;
     }
@@ -26,7 +27,7 @@ export default function injectInputToAccounts(): void {
     accountColorInput.addEventListener(
       "input",
       (event) => {
-        updatedAccountProperties(chrome.runtime, {
+        updateAccountProperties(chrome.runtime, {
           id: parseInt(accountId),
           //@ts-ignore
           color: event.target?.value,
@@ -36,5 +37,9 @@ export default function injectInputToAccounts(): void {
     );
 
     accountBlock?.append(accountColorInput);
+
+    return accountColorInput;
   });
+
+  return Promise.all(promises).then((results) => results.filter(Boolean) as HTMLInputElement[]);
 }
