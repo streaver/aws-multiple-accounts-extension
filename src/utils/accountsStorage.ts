@@ -30,7 +30,7 @@ export function updateAccountProperties(
 ): Promise<Account | null> {
   return new Promise((resolve) => {
     runtime.sendMessage(
-      { type: "UPDATE_PROPERTIES", payload: account },
+      { type: "UPDATE_ACCOUNT_PROPERTIES", payload: account },
       (response: UpdateAccountPropertiesBackgroundResponse) => {
         resolve(response.payload);
       },
