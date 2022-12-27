@@ -1,4 +1,4 @@
-export default async function waitForElement(selector: string, timeout: number = 1000): Promise<HTMLElement> {
+export default async function waitForElement(selector: string, timeout: number = 2500): Promise<HTMLElement> {
   return new Promise((resolve, reject) => {
     const observer = new MutationObserver(() => {
       const element = document.querySelector(selector);
