@@ -7,7 +7,7 @@ describe("accountStorage", () => {
   });
 
   describe("getAccount", () => {
-    test("returns the response", async () => {
+    test("returns the account when it exists", async () => {
       const message = { type: "GET_ACCOUNT", payload: 123 };
       const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "test" } };
 
@@ -16,15 +16,32 @@ describe("accountStorage", () => {
         callback(response);
       });
 
-      // @ts-ignore
-      await getAccount(chrome.runtime, 123);
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
 
       expect(chrome.runtime.sendMessage).toBeCalledWith(message, expect.anything());
+      expect(account).toEqual({ id: 123, name: "test" });
+    });
+
+    test("returns null when it does not exist", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: undefined };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+
+      expect(chrome.runtime.sendMessage).toBeCalledWith(message, expect.anything());
+      expect(account).toBeNull();
     });
   });
 
   describe("setAccount", () => {
-    test("returns the response", async () => {
+    test("sends a message to the background script", async () => {
       const message = { type: "SET_ACCOUNT", payload: { id: 123, name: "test" } };
       const response = { type: "SET_ACCOUNT" };
 
@@ -41,7 +58,7 @@ describe("accountStorage", () => {
   });
 
   describe("updateAccountProperties", () => {
-    test("returns the response", async () => {
+    test("returns the updated account", async () => {
       const message = { type: "UPDATE_ACCOUNT_PROPERTIES", payload: { id: 123, name: "test", color: "#ff0000" } };
       const response = { type: "UPDATE_ACCOUNT_PROPERTIES", payload: { id: 123, name: "test", color: "#ff0000" } };
 
@@ -51,9 +68,10 @@ describe("accountStorage", () => {
       });
 
       // @ts-ignore
-      await updateAccountProperties(chrome.runtime, { id: 123, name: "test", color: "#ff0000" });
+      const account = await updateAccountProperties(chrome.runtime, { id: 123, name: "test", color: "#ff0000" });
 
       expect(chrome.runtime.sendMessage).toBeCalledWith(message, expect.anything());
+      expect(account).toEqual({ id: 123, name: "test", color: "#ff0000" });
     });
   });
 });

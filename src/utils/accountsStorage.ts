@@ -11,7 +11,7 @@ export type AccountsCache = Record<string, string>;
 export async function getAccount(runtime: typeof chrome.runtime, id: number): Promise<Account | null> {
   return new Promise((resolve) => {
     runtime.sendMessage({ type: "GET_ACCOUNT", payload: id }, (response: GetAccountBackgroundResponse) => {
-      resolve(response.payload);
+      resolve(response.payload ?? null);
     });
   });
 }
