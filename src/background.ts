@@ -48,7 +48,7 @@ function getAccount(id: number): Promise<Account | null> {
     const accountKey = buildAccountKey(id);
 
     chrome.storage.sync.get(accountKey, (result) => {
-      const account = JSON.parse(result[accountKey]);
+      const account = JSON.parse(result[accountKey] ?? null);
 
       resolve(account);
     });
