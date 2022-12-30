@@ -1,11 +1,11 @@
-export default async function waitForElement(selector: string): Promise<Element> {
-  return new Promise((resolve) => {
-    const observer = new MutationObserver((mutations) => {
+export default async function waitForElement(selector: string, timeout: number = 2500): Promise<HTMLElement> {
+  return new Promise((resolve, reject) => {
+    const observer = new MutationObserver(() => {
       const element = document.querySelector(selector);
 
       if (element) {
         observer.disconnect();
-        resolve(element);
+        resolve(element as HTMLElement);
       }
     });
 
@@ -13,5 +13,11 @@ export default async function waitForElement(selector: string): Promise<Element>
       childList: true,
       subtree: true,
     });
+
+    setTimeout(() => {
+      observer.disconnect();
+
+      reject(new Error(`Element ${selector} not found`));
+    }, timeout);
   });
 }
