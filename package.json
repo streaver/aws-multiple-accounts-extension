@@ -1,6 +1,6 @@
 {
   "name": "aws-multiple-accounts-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "It allows you to know in which AWS account you are logged in.",
   "main": "index.js",
   "scripts": {
