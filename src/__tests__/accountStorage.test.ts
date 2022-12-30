@@ -60,7 +60,7 @@ describe("accountStorage", () => {
   describe("updateAccountProperties", () => {
     test("returns the updated account", async () => {
       const message = { type: "UPDATE_ACCOUNT_PROPERTIES", payload: { id: 123, name: "test", color: "#ff0000" } };
-      const response = { type: "UPDATE_ACCOUNT_PROPERTIES", payload: { id: 123, name: "test", color: "#ff0000" } };
+      const response = message;
 
       chrome.runtime.sendMessage.mockImplementation((message, callback) => {
         //@ts-ignore
