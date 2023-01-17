@@ -1,7 +1,11 @@
-export default async function waitForElement(selector: string, timeout: number = 2500): Promise<HTMLElement> {
+export default async function waitForElement(
+  selector: string,
+  root: Element | Document = document,
+  timeout: number = 2500,
+): Promise<HTMLElement> {
   return new Promise((resolve, reject) => {
     const observer = new MutationObserver(() => {
-      const element = document.querySelector(selector);
+      const element = root.querySelector(selector);
 
       if (element) {
         observer.disconnect();
@@ -9,7 +13,7 @@ export default async function waitForElement(selector: string, timeout: number =
       }
     });
 
-    observer.observe(document, {
+    observer.observe(root, {
       childList: true,
       subtree: true,
     });

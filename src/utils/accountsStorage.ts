@@ -4,6 +4,10 @@ export type Account = {
   id: number;
   name: string;
   color?: string;
+  managementConsoleDetails?: Array<{
+    roleName: string;
+    roleUrl: string;
+  }>;
 };
 
 export type AccountsCache = Record<string, string>;

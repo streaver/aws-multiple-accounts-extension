@@ -45,6 +45,13 @@ import waitForElement from "./utils/waitForElement";
       accountTextElement.style.padding = "0 5px";
 
       accountTextElement.innerHTML = newAccountName;
+
+      const newLink = document.createElement("a");
+      newLink.href =
+        "https://d-90674c4cf2.awsapps.com/start/#/saml/custom/199957260584%20%28Dev%29/MTE5ODQxNTMyODM1X2lucy1mOGQyZDA1MTZjNTE4ZWVhX3AtNDQ5NTUwNzY5OWM3Yzc0MA%3D%3D";
+      newLink.innerText = "AWS Dev Console";
+
+      accountTextElement.append(newLink);
     }
   }
 })();

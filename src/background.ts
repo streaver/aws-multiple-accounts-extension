@@ -43,26 +43,54 @@ function buildAccountKey(id: number): string {
   return `aws-accounts:${id}`;
 }
 
-function getAccount(id: number): Promise<Account | null> {
-  return new Promise((resolve) => {
-    const accountKey = buildAccountKey(id);
+async function getAccount(id: number): Promise<Account | null> {
+  const accountKey = buildAccountKey(id);
 
+  const syncAccount = await new Promise<Account>((resolve) => {
     chrome.storage.sync.get(accountKey, (result) => {
       const account = JSON.parse(result[accountKey] ?? null);
 
       resolve(account);
     });
   });
-}
 
-function setAccount(account: Account): Promise<Account> {
-  return new Promise((resolve) => {
-    const accountKey = buildAccountKey(account.id);
+  const localAccount = await new Promise<Account>((resolve) => {
+    chrome.storage.local.get(accountKey, (result) => {
+      const account = JSON.parse(result[accountKey] ?? null);
 
-    chrome.storage.sync.set({ [accountKey]: JSON.stringify(account) }, () => {
       resolve(account);
     });
   });
+
+  return { ...syncAccount, ...localAccount };
+}
+
+async function setAccount(account: Account): Promise<Account> {
+  const accountKey = buildAccountKey(account.id);
+
+  const syncAccount = await new Promise<Account>((resolve) => {
+    const accountWithoutManagementConsoleDetails = {
+      ...account,
+      managementConsoleDetails: undefined,
+    };
+
+    chrome.storage.sync.set({ [accountKey]: JSON.stringify(accountWithoutManagementConsoleDetails) }, () => {
+      resolve(account);
+    });
+  });
+
+  const localAccount = await new Promise<Account>((resolve) => {
+    const accountWithoutColor = {
+      ...account,
+      color: undefined,
+    };
+
+    chrome.storage.sync.set({ [accountKey]: JSON.stringify(accountWithoutColor) }, () => {
+      resolve(account);
+    });
+  });
+
+  return { ...syncAccount, ...localAccount };
 }
 
 chrome.runtime.onMessage.addListener(function (
