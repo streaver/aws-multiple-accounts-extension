@@ -3,6 +3,12 @@ export default async function waitForElement(
   root: Element | Document = document,
   timeout: number = 2500,
 ): Promise<HTMLElement> {
+  const element = root.querySelector(selector);
+
+  if (element) {
+    return Promise.resolve(element as HTMLElement);
+  }
+
   return new Promise((resolve, reject) => {
     const observer = new MutationObserver(() => {
       const element = root.querySelector(selector);

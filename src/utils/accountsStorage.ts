@@ -4,7 +4,7 @@ export type Account = {
   id: number;
   name: string;
   color?: string;
-  managementConsoleDetails?: Array<{
+  managementConsoleDetails: Array<{
     roleName: string;
     roleUrl: string;
   }>;

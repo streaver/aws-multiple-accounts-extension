@@ -1,26 +1,37 @@
-import { getAccount, setAccount } from "./utils/accountsStorage";
+import { Account, getAccount, setAccount } from "./utils/accountsStorage";
+import { getAccountDetails, getProfileDetails } from "./utils/domParsing";
+import { getAccountElements, getAccountProfileElements, getPortalElement } from "./utils/domSelection";
 import injectInputToAccounts from "./utils/injectInputToAccounts";
-import parseAccountsFromDom from "./utils/parseAccountsFromDom";
 import waitForElement from "./utils/waitForElement";
 
 (async function main() {
   if (window.location.host.endsWith("awsapps.com")) {
-    const element = await waitForElement('portal-application[title="AWS Account"]');
+    const portalElement = await getPortalElement();
 
-    element.addEventListener("click", async () => {
-      const accounts = parseAccountsFromDom();
+    portalElement.addEventListener("click", async () => {
+      const accountsElements = await getAccountElements();
 
-      await Promise.allSettled(
-        accounts.map(async (account) => {
-          const maybeAccount = await getAccount(chrome.runtime, account.id);
+      accountsElements.forEach(async (accountElement) => {
+        const account = getAccountDetails(accountElement);
 
-          if (maybeAccount) {
-            return;
-          }
+        console.log("account", account);
 
-          return setAccount(chrome.runtime, account);
-        }),
-      );
+        if (!account) {
+          return;
+        }
+
+        accountElement.addEventListener("click", async () => {
+          const profileElements = await getAccountProfileElements(accountElement);
+
+          const profiles = profileElements.map(getProfileDetails);
+
+          console.log("profiles", account, profiles);
+
+          setAccount(chrome.runtime, { ...account, managementConsoleDetails: profiles } as Account);
+        });
+
+        return setAccount(chrome.runtime, account as Account);
+      });
 
       await injectInputToAccounts();
     });

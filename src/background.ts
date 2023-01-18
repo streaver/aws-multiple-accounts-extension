@@ -81,11 +81,11 @@ async function setAccount(account: Account): Promise<Account> {
 
   const localAccount = await new Promise<Account>((resolve) => {
     const accountWithoutColor = {
-      ...account,
-      color: undefined,
+      id: account.id,
+      managementConsoleDetails: account.managementConsoleDetails,
     };
 
-    chrome.storage.sync.set({ [accountKey]: JSON.stringify(accountWithoutColor) }, () => {
+    chrome.storage.local.set({ [accountKey]: JSON.stringify(accountWithoutColor) }, () => {
       resolve(account);
     });
   });

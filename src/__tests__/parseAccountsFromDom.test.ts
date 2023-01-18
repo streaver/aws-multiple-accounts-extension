@@ -1,4 +1,4 @@
-import parseAccountsFromDom from "../utils/parseAccountsFromDom";
+import { getAccountElements } from "../utils/domSelection";
 
 describe("parseAccountsFromDom", () => {
   afterEach(() => {
@@ -28,7 +28,7 @@ describe("parseAccountsFromDom", () => {
 
     document.body.appendChild(element);
 
-    const result = parseAccountsFromDom();
+    const result = getAccountElements();
 
     expect(result).toEqual(accounts);
   });
@@ -51,7 +51,7 @@ describe("parseAccountsFromDom", () => {
 
     document.body.appendChild(element);
 
-    const result = parseAccountsFromDom();
+    const result = getAccountElements();
 
     expect(result).toEqual([]);
   });
@@ -74,7 +74,7 @@ describe("parseAccountsFromDom", () => {
 
     document.body.appendChild(element);
 
-    const result = parseAccountsFromDom();
+    const result = getAccountElements();
 
     expect(result).toEqual([]);
   });
