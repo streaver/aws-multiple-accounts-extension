@@ -57,12 +57,35 @@ import waitForElement from "./utils/waitForElement";
 
       accountTextElement.innerHTML = newAccountName;
 
-      const newLink = document.createElement("a");
-      newLink.href =
-        "https://d-90674c4cf2.awsapps.com/start/#/saml/custom/199957260584%20%28Dev%29/MTE5ODQxNTMyODM1X2lucy1mOGQyZDA1MTZjNTE4ZWVhX3AtNDQ5NTUwNzY5OWM3Yzc0MA%3D%3D";
-      newLink.innerText = "AWS Dev Console";
+      // const newLink = document.createElement("a");
+      // newLink.href =
+      //   "https://d-90674c4cf2.awsapps.com/start/#/saml/custom/199957260584%20%28Dev%29/MTE5ODQxNTMyODM1X2lucy1mOGQyZDA1MTZjNTE4ZWVhX3AtNDQ5NTUwNzY5OWM3Yzc0MA%3D%3D";
+      // newLink.innerText = "AWS Dev Console";
 
-      accountTextElement.append(newLink);
+      // accountTextElement.append(newLink);
+
+      const menu = await waitForElement("#menu--account");
+
+      console.log("account", account);
+
+      if (menu) {
+        const container = document.createElement("div");
+
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+
+        account.managementConsoleDetails.forEach((profile) => {
+          const newProfileElement = document.createElement("a");
+
+          newProfileElement.href = profile.roleUrl;
+          newProfileElement.innerText = `${account.name} - ${profile.roleName}`;
+          newProfileElement.style.color = "white";
+
+          container.append(newProfileElement);
+        });
+
+        menu.append(container);
+      }
     }
   }
 })();
