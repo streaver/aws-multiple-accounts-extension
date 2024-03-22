@@ -1,8 +1,8 @@
 import { getAccount, updateAccountProperties } from "./accountsStorage";
 
 export default async function injectInputToAccounts(): Promise<HTMLInputElement[]> {
-  const promises = Array.from(document.querySelectorAll(".instance-section")).map(async (accountBlock) => {
-    const accountId = accountBlock.querySelector(".accountId")?.innerHTML.replace(/\#/g, "");
+  const promises = Array.from(document.querySelectorAll('[data-testid="account-list-cell"]')).map(async (accountBlock) => {
+    const accountId = accountBlock.querySelector("div > div:nth-child(2) > div")?.innerHTML.replace(/\s*\|.*$/, "");
 
     if (!accountId) {
       return;
@@ -17,7 +17,7 @@ export default async function injectInputToAccounts(): Promise<HTMLInputElement[
     const accountColorInput = document.createElement("input");
     accountColorInput.type = "color";
     accountColorInput.value = account.color || "#000000";
-    accountColorInput.style.marginLeft = "10px";
+    accountColorInput.style.marginLeft = "auto";
 
     // In order to avoid the parent menu from opening when clicking on the color input
     accountColorInput.addEventListener("click", (event) => {
