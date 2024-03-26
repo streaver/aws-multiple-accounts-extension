@@ -5,9 +5,10 @@ import waitForElement from "./utils/waitForElement";
 
 (async function main() {
   if (window.location.host.endsWith("awsapps.com")) {
-    const element = await waitForElement('portal-application[title="AWS Account"]');
-
+    const element: HTMLElement = await waitForElement('[data-testid="accounts"]');
+    
     element.addEventListener("click", async () => {
+      await waitForElement('[data-testid="account-list-cell"]');
       const accounts = parseAccountsFromDom();
 
       await Promise.allSettled(
@@ -24,6 +25,8 @@ import waitForElement from "./utils/waitForElement";
 
       await injectInputToAccounts();
     });
+
+    window.location.hash.split("=")[1] == "accounts" ? element.click() : null;
   } else if (window.location.host.endsWith("aws.amazon.com")) {
     const accountIdElement = await waitForElement('div[data-testid="account-detail-menu"] span:nth-child(2)');
     const accountTextElement = await waitForElement('span[data-testid="awsc-nav-account-menu-button"] span');

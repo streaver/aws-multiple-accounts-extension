@@ -27,16 +27,22 @@ describe("injectInputToAccounts", () => {
     element.innerHTML = accounts
       .map((account) => {
         return `
-          <div class="instance-section">
-            <div class="name">${account.name}</div>
-            <div class="accountId">#${account.id}</div>
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
           </div>
-        `;
+        </button>
+      `;
       })
       .join("");
 
     document.body.appendChild(element);
-
+    
     await injectInputToAccounts();
 
     const result = Array.from(document.querySelectorAll("input"));
@@ -48,21 +54,54 @@ describe("injectInputToAccounts", () => {
     });
   });
 
-  test("does not inject the input to the accounts when it does not find accountId", async () => {
+  test("does not inject the input to the accounts when it does not find account-list-cell", async () => {
     const element = document.createElement("div");
 
     element.id = "test-element";
     element.innerHTML = accounts
       .map((account) => {
         return `
-          <div class="instance-section">
-            <div class="name">${account.name}</div>
-            <div class="newAccountId">#${account.id}</div>
+        <button data-testid="">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
           </div>
-        `;
+        </button>
+      `;
       })
       .join("");
+    document.body.appendChild(element);
 
+    await injectInputToAccounts();
+
+    const result = Array.from(document.querySelectorAll("input"));
+
+    expect(result).toHaveLength(0);
+  });
+
+  test("does not inject the input to the accounts when it does not find account id", async () => {
+    const element = document.createElement("div");
+
+    element.id = "test-element";
+    element.innerHTML = accounts
+      .map((account) => {
+        return `
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+            </div>
+          </div>
+        </button>
+      `;
+      })
+      .join("");
     document.body.appendChild(element);
 
     await injectInputToAccounts();
@@ -76,12 +115,22 @@ describe("injectInputToAccounts", () => {
     const element = document.createElement("div");
 
     element.id = "test-element";
-    element.innerHTML = `
-    <div class="instance-section">
-      <div class="name">Does not exist</div>
-      <div class="accountId">#99999</div>
-    </div>
-  `;
+    element.innerHTML = accounts
+      .map((account) => {
+        return `
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>Does not exist</strong>
+            </div>
+            <div>
+              <div>99999 | Does not exist </div>
+            </div>
+          </div>
+        </button>
+      `;
+      })
+      .join("");
 
     document.body.appendChild(element);
 
@@ -96,12 +145,22 @@ describe("injectInputToAccounts", () => {
     const element = document.createElement("div");
 
     element.id = "test-element";
-    element.innerHTML = `
-    <div class="instance-section">
-      <div class="name">${accounts[0].name}</div>
-      <div class="accountId">#${accounts[0].id}</div>
-    </div>
-  `;
+    element.innerHTML = accounts
+      .map((account) => {
+        return `
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
+          </div>
+        </button>
+      `;
+      })
+      .join("");
 
     document.body.appendChild(element);
 
@@ -122,12 +181,22 @@ describe("injectInputToAccounts", () => {
     const element = document.createElement("div");
 
     element.id = "test-element";
-    element.innerHTML = `
-    <div class="instance-section">
-      <div class="name">${accounts[0].name}</div>
-      <div class="accountId">#${accounts[0].id}</div>
-    </div>
-  `;
+    element.innerHTML = accounts
+      .map((account) => {
+        return `
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
+          </div>
+        </button>
+      `;
+      })
+      .join("");
 
     document.body.appendChild(element);
 

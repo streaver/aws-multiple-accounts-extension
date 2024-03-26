@@ -18,11 +18,17 @@ describe("parseAccountsFromDom", () => {
     element.innerHTML = accounts
       .map((account) => {
         return `
-          <div class="instance-block">
-            <div class="name">${account.name}</div>
-            <div class="accountId">#${account.id}</div>
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
           </div>
-        `;
+        </button>
+      `;
       })
       .join("");
 
@@ -42,10 +48,14 @@ describe("parseAccountsFromDom", () => {
     element.innerHTML = accounts
       .map((account) => {
         return `
-          <div class="instance-block">
-            <div class="accountId">#${account.id}</div>
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <div>${account.id} | ${account.name} </div>
+            </div>
           </div>
-        `;
+        </button>
+      `;
       })
       .join("");
 
@@ -65,10 +75,14 @@ describe("parseAccountsFromDom", () => {
     element.innerHTML = accounts
       .map((account) => {
         return `
-          <div class="instance-block">
-            <div class="name">${account.name}</div>
+        <button data-testid="account-list-cell">
+          <div>
+            <div>
+              <strong>${account.name}</strong>
+            </div>
           </div>
-        `;
+        </button>
+      `;
       })
       .join("");
 
@@ -78,4 +92,34 @@ describe("parseAccountsFromDom", () => {
 
     expect(result).toEqual([]);
   });
+});
+
+test("it returns an empty array if the data-testid is not found", () => {
+  const accounts = [{ name: "Account 1", id: 123 }];
+
+  const element = document.createElement("div");
+
+  element.id = "test-element";
+  element.innerHTML = accounts
+    .map((account) => {
+      return `
+      <button data-testid="">
+        <div>
+          <div>
+            <strong>${account.name}</strong>
+          </div>
+          <div>
+            <div>${account.id} | ${account.name} </div>
+          </div>
+        </div>
+      </button>
+    `;
+    })
+    .join("");
+
+  document.body.appendChild(element);
+
+  const result = parseAccountsFromDom();
+
+  expect(result).toEqual([]);
 });
