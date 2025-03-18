@@ -9,7 +9,7 @@ describe("accountStorage", () => {
   describe("getAccount", () => {
     test("returns the account when it exists", async () => {
       const message = { type: "GET_ACCOUNT", payload: 123 };
-      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "test" } };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "test", color: "#448430" } };
 
       chrome.runtime.sendMessage.mockImplementation((message, callback) => {
         //@ts-ignore
@@ -20,7 +20,11 @@ describe("accountStorage", () => {
       const account = await getAccount(chrome.runtime, 123);
 
       expect(chrome.runtime.sendMessage).toBeCalledWith(message, expect.anything());
-      expect(account).toEqual({ id: 123, name: "test" });
+      expect(account).toEqual({
+        id: 123,
+        name: "test",
+        color: "#448430",
+      });
     });
 
     test("returns null when it does not exist", async () => {
@@ -37,6 +41,76 @@ describe("accountStorage", () => {
 
       expect(chrome.runtime.sendMessage).toBeCalledWith(message, expect.anything());
       expect(account).toBeNull();
+    });
+
+    test("assigns default color for QA/Test environments", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "qa-account" } };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+      expect(account?.color).toBe("#448430");
+    });
+
+    test("assigns default color for Staging environments", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "staging-env" } };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+      expect(account?.color).toBe("#d6662a");
+    });
+
+    test("assigns default color for Production environments", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "production" } };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+      expect(account?.color).toBe("#d32a35");
+    });
+
+    test("assigns black color for unknown environment types", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123, name: "unknown-env" } };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+      expect(account?.color).toBe("#000000");
+    });
+
+    test("handles account with undefined name", async () => {
+      const message = { type: "GET_ACCOUNT", payload: 123 };
+      const response = { type: "GET_ACCOUNT", payload: { id: 123 } };
+
+      chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        //@ts-ignore
+        callback(response);
+      });
+
+      //@ts-ignore
+      const account = await getAccount(chrome.runtime, 123);
+      expect(account?.color).toBe("#000000");
     });
   });
 

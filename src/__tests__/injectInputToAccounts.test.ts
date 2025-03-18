@@ -1,216 +1,229 @@
 import { updateAccountProperties } from "../utils/accountsStorage";
 import injectInputToAccounts from "../utils/injectInputToAccounts";
 
-const accounts = [
+const TEST_ACCOUNTS = [
   { name: "Account 1", id: 123, color: "#ff0000" },
   { name: "Account 2", id: 456, color: "#00ff00" },
-  { name: "Account 3", id: 789 },
+  { name: "Account 3", id: 789, color: "#000000" },
 ];
 
+(global as any).chrome = {
+  runtime: {
+    sendMessage: (message: any, callback: (response: any) => void) => {
+      switch (message.type) {
+        case "GET_ACCOUNT":
+          const account = TEST_ACCOUNTS.find((acc) => acc.id === message.payload);
+          callback({ payload: account ? { ...account } : null });
+          break;
+        case "UPDATE_ACCOUNT_PROPERTIES":
+          callback({ payload: { ...TEST_ACCOUNTS[0], ...message.payload } });
+          break;
+      }
+    },
+  },
+};
+
 jest.mock("../utils/accountsStorage", () => {
+  const originalModule = jest.requireActual("../utils/accountsStorage");
   return {
     __esModule: true,
-    getAccount: (runtime: any, id: number) => Promise.resolve(accounts.find((account) => account.id === id)),
-    updateAccountProperties: jest.fn().mockImplementation(() => Promise.resolve(accounts[0])),
+    ...originalModule,
+    updateAccountProperties: jest.fn().mockImplementation((runtime, account) => {
+      return Promise.resolve({ ...TEST_ACCOUNTS[0], ...account });
+    }),
   };
 });
 
 describe("injectInputToAccounts", () => {
-  afterEach(() => {
+  const createAwsAccountCell = (id: number, name: string): HTMLElement => {
+    const cell = document.createElement("div");
+    cell.setAttribute("data-testid", "account-list-cell");
+
+    const innerDiv = document.createElement("div");
+    const pTag = document.createElement("p");
+    const contentDiv = document.createElement("div");
+    contentDiv.textContent = `${id} | ${name}`;
+
+    pTag.appendChild(contentDiv);
+    innerDiv.appendChild(pTag);
+    cell.appendChild(innerDiv);
+
+    return cell;
+  };
+
+  beforeEach(() => {
     document.body.innerHTML = "";
+    document.head.innerHTML = "";
   });
 
-  test("injects the input to the accounts", async () => {
-    const element = document.createElement("div");
+  afterEach(() => {
+    document.body.innerHTML = "";
+    document.head.innerHTML = "";
+    jest.clearAllMocks();
+  });
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
+  describe("style injection", () => {
+    test("should inject color input styles into document head", async () => {
+      document.body.appendChild(createAwsAccountCell(TEST_ACCOUNTS[0].id, TEST_ACCOUNTS[0].name));
 
-    document.body.appendChild(element);
-    
-    await injectInputToAccounts();
+      await injectInputToAccounts();
 
-    const result = Array.from(document.querySelectorAll("input"));
-
-    expect(result).toHaveLength(accounts.length);
-
-    result.forEach((input, index) => {
-      expect(input!.value).toEqual(accounts[index].color || "#000000");
+      const styleElement = document.head.querySelector("style");
+      expect(styleElement).toBeTruthy();
+      expect(styleElement?.textContent).toContain('input[type="color"]::-webkit-color-swatch');
+      expect(styleElement?.textContent).toContain('input[type="color"]::-webkit-color-swatch-wrapper');
     });
   });
 
-  test("does not inject the input to the accounts when it does not find account-list-cell", async () => {
-    const element = document.createElement("div");
+  describe("successful injection", () => {
+    test("should inject color inputs for all valid accounts", async () => {
+      TEST_ACCOUNTS.forEach((account) => {
+        document.body.appendChild(createAwsAccountCell(account.id, account.name));
+      });
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-    document.body.appendChild(element);
+      const injectedInputs = await injectInputToAccounts();
 
-    await injectInputToAccounts();
+      expect(injectedInputs).toHaveLength(TEST_ACCOUNTS.length);
 
-    const result = Array.from(document.querySelectorAll("input"));
+      injectedInputs.forEach((input, index) => {
+        expect(input.value).toEqual(TEST_ACCOUNTS[index].color);
+        expect(input.type).toBe("color");
+        expect(input.style.marginLeft).toBe("auto");
+        expect(input.style.alignSelf).toBe("center");
+      });
+    });
 
-    expect(result).toHaveLength(0);
+    test("should prevent click event propagation on color inputs", async () => {
+      document.body.appendChild(createAwsAccountCell(TEST_ACCOUNTS[0].id, TEST_ACCOUNTS[0].name));
+      const clickSpy = jest.fn();
+      document.body.addEventListener("click", clickSpy);
+
+      const [colorInput] = await injectInputToAccounts();
+      colorInput.click();
+
+      expect(clickSpy).not.toHaveBeenCalled();
+    });
+
+    test("should update account properties when color input changes", async () => {
+      const NEW_COLOR = "#121212";
+      document.body.appendChild(createAwsAccountCell(TEST_ACCOUNTS[0].id, TEST_ACCOUNTS[0].name));
+
+      const [colorInput] = await injectInputToAccounts();
+      colorInput.value = NEW_COLOR;
+      colorInput.dispatchEvent(new Event("input"));
+
+      expect(updateAccountProperties).toHaveBeenCalledWith(expect.anything(), {
+        id: TEST_ACCOUNTS[0].id,
+        color: NEW_COLOR,
+      });
+    });
+
+    test("should apply all required styles to color inputs", async () => {
+      document.body.appendChild(createAwsAccountCell(TEST_ACCOUNTS[0].id, TEST_ACCOUNTS[0].name));
+
+      const [colorInput] = await injectInputToAccounts();
+
+      expect(colorInput.style.width).toBe("30px");
+      expect(colorInput.style.height).toBe("30px");
+      expect(colorInput.style.padding).toBe("0px");
+      expect(colorInput.style.border).toBe("");
+      expect(colorInput.style.borderRadius).toBe("50%");
+      expect(colorInput.style.cursor).toBe("pointer");
+    });
   });
 
-  test("does not inject the input to the accounts when it does not find account id", async () => {
-    const element = document.createElement("div");
+  describe("error cases", () => {
+    test("should not inject inputs when account-list-cell is missing", async () => {
+      const container = document.createElement("div");
+      TEST_ACCOUNTS.forEach((account) => {
+        const button = document.createElement("button");
+        button.textContent = `${account.id} | ${account.name}`;
+        container.appendChild(button);
+      });
+      document.body.appendChild(container);
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-    document.body.appendChild(element);
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
 
-    await injectInputToAccounts();
+    test("should not inject inputs when account ID is missing", async () => {
+      const container = document.createElement("div");
+      TEST_ACCOUNTS.forEach(() => {
+        const cell = document.createElement("div");
+        cell.setAttribute("data-testid", "account-list-cell");
+        container.appendChild(cell);
+      });
+      document.body.appendChild(container);
 
-    const result = Array.from(document.querySelectorAll("input"));
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
 
-    expect(result).toHaveLength(0);
+    test("should not inject inputs for non-existent accounts", async () => {
+      document.body.appendChild(createAwsAccountCell(99999, "Non-existent Account"));
+
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
+
+    test("should not inject inputs for malformed account description", async () => {
+      const cell = document.createElement("div");
+      cell.setAttribute("data-testid", "account-list-cell");
+
+      const innerDiv = document.createElement("div");
+      const pTag = document.createElement("p");
+      const contentDiv = document.createElement("div");
+      contentDiv.textContent = "malformed-no-separator";
+
+      pTag.appendChild(contentDiv);
+      innerDiv.appendChild(pTag);
+      cell.appendChild(innerDiv);
+      document.body.appendChild(cell);
+
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
+
+    test("should not inject inputs for empty account description", async () => {
+      const cell = document.createElement("div");
+      cell.setAttribute("data-testid", "account-list-cell");
+
+      const innerDiv = document.createElement("div");
+      const pTag = document.createElement("p");
+      const contentDiv = document.createElement("div");
+      contentDiv.textContent = "";
+
+      pTag.appendChild(contentDiv);
+      innerDiv.appendChild(pTag);
+      cell.appendChild(innerDiv);
+      document.body.appendChild(cell);
+
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
+
+    test("should handle non-numeric account IDs", async () => {
+      const cell = createAwsAccountCell(NaN, "Invalid ID Account");
+      document.body.appendChild(cell);
+
+      const inputs = await injectInputToAccounts();
+      expect(inputs).toHaveLength(0);
+    });
   });
 
-  test("does not inject the input to the accounts when it does not find account", async () => {
-    const element = document.createElement("div");
+  describe("default values", () => {
+    test("should use default color when account has no color specified", async () => {
+      const accountWithoutColor = { ...TEST_ACCOUNTS[0], color: undefined };
+      (global as any).chrome.runtime.sendMessage = (message: any, callback: (response: any) => void) => {
+        if (message.type === "GET_ACCOUNT") {
+          callback({ payload: accountWithoutColor });
+        }
+      };
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>Does not exist</strong>
-            </div>
-            <div>
-              <div>99999 | Does not exist </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
+      document.body.appendChild(createAwsAccountCell(accountWithoutColor.id, accountWithoutColor.name));
 
-    document.body.appendChild(element);
-
-    await injectInputToAccounts();
-
-    const result = Array.from(document.querySelectorAll("input"));
-
-    expect(result).toHaveLength(0);
-  });
-
-  test("the input stop the click propagation", async () => {
-    const element = document.createElement("div");
-
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-
-    document.body.appendChild(element);
-
-    await injectInputToAccounts();
-
-    const input = document.querySelector("input") as HTMLInputElement;
-
-    const clickSpy = jest.fn();
-
-    document.body.addEventListener("click", clickSpy);
-
-    input.click();
-
-    expect(clickSpy).not.toHaveBeenCalled();
-  });
-
-  test("the input event updates the account properties", async () => {
-    const element = document.createElement("div");
-
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-
-    document.body.appendChild(element);
-
-    await injectInputToAccounts();
-
-    const input = document.querySelector("input") as HTMLInputElement;
-
-    input.value = "#121212";
-
-    input.dispatchEvent(new Event("input"));
-
-    expect(updateAccountProperties).toHaveBeenCalledWith(expect.anything(), {
-      id: accounts[0].id,
-      color: "#121212",
+      const [colorInput] = await injectInputToAccounts();
+      expect(colorInput.value).toBe("#000000");
     });
   });
 });

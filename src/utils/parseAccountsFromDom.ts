@@ -1,13 +1,22 @@
 import { Account } from "./accountsStorage";
 
-export default function parseAccountsFromDom(): Account[] {
+export const parseAccountsFromDom = (): Account[] => {
   const accounts = Array.from(document.querySelectorAll('[data-testid="account-list-cell"]'))
     .map((account) => {
-      const accountName = account.querySelector("div div strong")?.innerHTML;
-      const accountId = account.querySelector("div > div:nth-child(2) > div")?.innerHTML.replace(/\s*\|.*$/, "");
-      
-      if (accountName && accountId) {
-        return { name: accountName, id: parseInt(accountId) };
+      const accountName = account.querySelector("div div strong div")?.innerHTML;
+      const accountDescription = account.querySelector("div div p div")?.innerHTML;
+
+      if (accountDescription) {
+        const [accountId] = accountDescription.split("|").map((s) => s.trim());
+        if (accountId && accountName) {
+          const parsedId = parseInt(accountId);
+          if (!isNaN(parsedId)) {
+            return {
+              name: accountName,
+              id: parsedId,
+            };
+          }
+        }
       }
 
       return null;
@@ -15,4 +24,4 @@ export default function parseAccountsFromDom(): Account[] {
     .filter(Boolean);
 
   return accounts as Account[];
-}
+};

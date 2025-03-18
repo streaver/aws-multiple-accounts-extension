@@ -1,125 +1,120 @@
-import parseAccountsFromDom from "../utils/parseAccountsFromDom";
+import { parseAccountsFromDom } from "../utils/parseAccountsFromDom";
+
+function createAccountCell(name: string, id?: string) {
+  const cell = document.createElement("div");
+  cell.setAttribute("data-testid", "account-list-cell");
+
+  const wrapper = document.createElement("div");
+  const container = document.createElement("div");
+
+  const strong = document.createElement("strong");
+  const nameDiv = document.createElement("div");
+  nameDiv.textContent = name;
+  strong.appendChild(nameDiv);
+  container.appendChild(strong);
+
+  if (id) {
+    const p = document.createElement("p");
+    const idDiv = document.createElement("div");
+    idDiv.textContent = `${id} | AWS Account`;
+    p.appendChild(idDiv);
+    container.appendChild(p);
+  }
+
+  wrapper.appendChild(container);
+  cell.appendChild(wrapper);
+  return cell;
+}
+
+function createInvalidStructureCell(name: string, id: string) {
+  const cell = document.createElement("div");
+  cell.setAttribute("data-testid", "account-list-cell");
+  cell.innerHTML = `<div>${name} - ${id}</div>`;
+  return cell;
+}
 
 describe("parseAccountsFromDom", () => {
   afterEach(() => {
     document.body.innerHTML = "";
   });
 
-  test("returns and array with the accounts from the DOM", () => {
+  it("should parse accounts with ids and names from the DOM", () => {
     const accounts = [
-      { name: "Account 1", id: 123 },
-      { name: "Account 2", id: 456 },
-      { name: "Account 3", id: 789 },
+      { name: "qa-payments-service", id: "123456789012" },
+      { name: "production-api", id: "234567890123" },
+      { name: "qa-auth-service", id: "345678901234" },
+      { name: "production-frontend", id: "456789012345" },
     ];
 
-    const element = document.createElement("div");
+    accounts.forEach((account) => {
+      document.body.appendChild(createAccountCell(account.name, account.id));
+    });
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-
-    document.body.appendChild(element);
-
-    const result = parseAccountsFromDom();
-
-    expect(result).toEqual(accounts);
+    expect(parseAccountsFromDom()).toEqual(accounts.map((acc) => ({ ...acc, id: parseInt(acc.id) })));
   });
 
-  test("returns an empty array if the name is not found", () => {
-    const accounts = [{ name: "Account 1", id: 123 }];
+  it("should ignore cells without valid account info", () => {
+    // Add invalid cell (missing ID)
+    document.body.appendChild(createAccountCell("qa-invalid-account"));
 
-    const element = document.createElement("div");
+    // Add valid cell
+    document.body.appendChild(createAccountCell("production-valid-service", "987654321098"));
 
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <div>${account.id} | ${account.name} </div>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-
-    document.body.appendChild(element);
-
-    const result = parseAccountsFromDom();
-
-    expect(result).toEqual([]);
+    expect(parseAccountsFromDom()).toEqual([{ id: 987654321098, name: "production-valid-service" }]);
   });
 
-  test("it returns an empty array if the id is not found", () => {
-    const accounts = [{ name: "Account 1", id: 123 }];
-
-    const element = document.createElement("div");
-
-    element.id = "test-element";
-    element.innerHTML = accounts
-      .map((account) => {
-        return `
-        <button data-testid="account-list-cell">
-          <div>
-            <div>
-              <strong>${account.name}</strong>
-            </div>
-          </div>
-        </button>
-      `;
-      })
-      .join("");
-
-    document.body.appendChild(element);
-
-    const result = parseAccountsFromDom();
-
-    expect(result).toEqual([]);
+  it("should return empty array when no accounts found", () => {
+    expect(parseAccountsFromDom()).toEqual([]);
   });
-});
 
-test("it returns an empty array if the data-testid is not found", () => {
-  const accounts = [{ name: "Account 1", id: 123 }];
+  it("should ignore accounts with invalid ID format", () => {
+    // Add cell with non-numeric ID
+    document.body.appendChild(createAccountCell("qa-service", "invalid-id"));
 
-  const element = document.createElement("div");
+    // Add cell with empty ID
+    document.body.appendChild(createAccountCell("production-service", ""));
 
-  element.id = "test-element";
-  element.innerHTML = accounts
-    .map((account) => {
-      return `
-      <button data-testid="">
-        <div>
-          <div>
-            <strong>${account.name}</strong>
-          </div>
-          <div>
-            <div>${account.id} | ${account.name} </div>
-          </div>
-        </div>
-      </button>
-    `;
-    })
-    .join("");
+    // Add cell with valid ID
+    document.body.appendChild(createAccountCell("valid-service", "123456789012"));
 
-  document.body.appendChild(element);
+    expect(parseAccountsFromDom()).toEqual([{ id: 123456789012, name: "valid-service" }]);
+  });
 
-  const result = parseAccountsFromDom();
+  it("should ignore accounts with invalid HTML structure", () => {
+    // Add cell with invalid structure
+    document.body.appendChild(createInvalidStructureCell("qa-service", "123456789012"));
 
-  expect(result).toEqual([]);
+    // Add cell with valid structure
+    document.body.appendChild(createAccountCell("production-service", "987654321098"));
+
+    expect(parseAccountsFromDom()).toEqual([{ id: 987654321098, name: "production-service" }]);
+  });
+
+  it("should handle malformed account descriptions", () => {
+    const cell = document.createElement("div");
+    cell.setAttribute("data-testid", "account-list-cell");
+
+    const wrapper = document.createElement("div");
+    const container = document.createElement("div");
+
+    const strong = document.createElement("strong");
+    const nameDiv = document.createElement("div");
+    nameDiv.textContent = "qa-service";
+    strong.appendChild(nameDiv);
+    container.appendChild(strong);
+
+    const p = document.createElement("p");
+    const idDiv = document.createElement("div");
+    // Missing the separator |
+    idDiv.textContent = "123456789012";
+    p.appendChild(idDiv);
+    container.appendChild(p);
+
+    wrapper.appendChild(container);
+    cell.appendChild(wrapper);
+
+    document.body.appendChild(cell);
+
+    expect(parseAccountsFromDom()).toEqual([{ id: 123456789012, name: "qa-service" }]);
+  });
 });

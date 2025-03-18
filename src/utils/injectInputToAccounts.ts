@@ -1,45 +1,74 @@
 import { getAccount, updateAccountProperties } from "./accountsStorage";
 
 export default async function injectInputToAccounts(): Promise<HTMLInputElement[]> {
-  const promises = Array.from(document.querySelectorAll('[data-testid="account-list-cell"]')).map(async (accountBlock) => {
-    const accountId = accountBlock.querySelector("div > div:nth-child(2) > div")?.innerHTML.replace(/\s*\|.*$/, "");
+  const style = document.createElement("style");
 
-    if (!accountId) {
-      return;
+  style.textContent = `
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 50%;
     }
-
-    const account = await getAccount(chrome.runtime, parseInt(accountId));
-
-    if (!account) {
-      return;
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+      border-radius: 50%;
     }
+  `;
 
-    const accountColorInput = document.createElement("input");
-    accountColorInput.type = "color";
-    accountColorInput.value = account.color || "#000000";
-    accountColorInput.style.marginLeft = "auto";
+  document.head.appendChild(style);
 
-    // In order to avoid the parent menu from opening when clicking on the color input
-    accountColorInput.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
+  const promises = Array.from(document.querySelectorAll('[data-testid="account-list-cell"]')).map(
+    async (accountBlock) => {
+      const accountDescription = accountBlock.querySelector("div div p div")?.innerHTML;
 
-    accountColorInput.addEventListener(
-      "input",
-      (event) => {
-        updateAccountProperties(chrome.runtime, {
-          id: parseInt(accountId),
-          //@ts-ignore
-          color: event.target?.value,
-        });
-      },
-      true,
-    );
+      if (!accountDescription) {
+        return;
+      }
 
-    accountBlock?.append(accountColorInput);
+      const [accountId] = accountDescription.split("|").map((s) => s.trim());
 
-    return accountColorInput;
-  });
+      if (!accountId) {
+        return;
+      }
+
+      const account = await getAccount(chrome.runtime, parseInt(accountId));
+
+      if (!account) {
+        return;
+      }
+
+      const accountColorInput = document.createElement("input");
+      accountColorInput.type = "color";
+      accountColorInput.value = account.color || "#000000";
+      accountColorInput.style.marginLeft = "auto";
+      accountColorInput.style.alignSelf = "center";
+      accountColorInput.style.width = "30px";
+      accountColorInput.style.height = "30px";
+      accountColorInput.style.padding = "0";
+      accountColorInput.style.border = "none";
+      accountColorInput.style.borderRadius = "50%";
+      accountColorInput.style.cursor = "pointer";
+
+      accountColorInput.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      accountColorInput.addEventListener(
+        "input",
+        (event) => {
+          updateAccountProperties(chrome.runtime, {
+            id: parseInt(accountId),
+            //@ts-ignore
+            color: event.target?.value,
+          });
+        },
+        true,
+      );
+
+      accountBlock?.append(accountColorInput);
+
+      return accountColorInput;
+    },
+  );
 
   return Promise.all(promises).then((results) => results.filter(Boolean) as HTMLInputElement[]);
 }
